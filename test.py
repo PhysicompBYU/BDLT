@@ -8,7 +8,8 @@ import glob
 import select
 import threading
 import readchar
-
+#readchar should work on windows but doesnt. I hope you are using Unix. 
+#but it is not necessary to do the actual serial communication.
 
 #*************************************************************
 #   
@@ -194,11 +195,13 @@ while 1 :
             time.sleep(.2)
 #Send command straight to device.  Will later be deprecated, 
 #as all will be handled by client
+
     else:
         inp += '\r'
         ser.write(inp.encode('ascii'))
         wait_serial(ser)
-#This waiting on the device occurs for every command
+
+#This reading from the device occurs for every command
 #which is why it is on the level of the while(1)
     read_serial(ser)
 
