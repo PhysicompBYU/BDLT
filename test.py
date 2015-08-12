@@ -18,7 +18,7 @@ import readchar
 #   
 #   You may need to pip install pyserial
 #   I included the 'readchar' package because it was handy,
-#   but it can also be install via pip.
+#   but it can also be installed via pip.
 #   
 #   You will need to plug in a BDL to see the serial ports
 #   It should be cross platform with the enum_serial_ports()
