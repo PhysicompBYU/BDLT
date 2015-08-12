@@ -126,7 +126,7 @@ helpstr = """Commands:
 help\t (h): This
 config\t(cf): Enters Config mode, nothing happens before this
 commit\t (c): Commit changes to device, resetting it
-listen\t(ls): Print out all data from device
+listen\t(ls): Print out data from device
 empty\t (e): If serial buffers are full, run this to empty
 exit\t (x): exits
 Anything else will be sent straight to the device
