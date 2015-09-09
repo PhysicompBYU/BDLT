@@ -73,24 +73,36 @@ def wait_serial(ser):
 #Called in a thread to check for exit character while listening on serial port
 def input_check():
     threadLock.acquire()
-    while True:
-        ch = readchar.readchar()
-        if (ch == 'q'):
-            break
+    try:
+        while True:
+            ch = readchar.readchar()
+            if (ch == 'q'):
+                break
+    except:
+        threadLock.release()    
+        return
     threadLock.release()
 
 #Listen on device serial port in a thread, stop when lock releases, 
 #indicating that 'q' was pressed
-def listen():
-    print('Listening: (\'q\' to quit)')
+def listen(writeFile):
+    print('Connecting...')
     save_timeout = ser.timeout
     ser.timeout = .1
+
+    ser.flushInput()
+    time.sleep(.1)
+    ser.flushInput()
+
+    print('Listening: (\'q\' to quit)')
     while not threadLock.acquire(blocking = False):
         data = ser.readline()
         print(data.decode('ascii'),end='')
-        if('outfile' in locals()): #This checks if 'outfile' is declared
+        if(writeFile): #This checks if 'outfile' is declared
             outfile.write(data.decode('ascii'))
     print('Stopping...')
+    if(writeFile):
+        outfile.close()
     ser.timeout = save_timeout
 
 
@@ -100,7 +112,7 @@ print('Select serial port:')
 options = enum_serial_ports()
 for n in range(len(options)):
     print(str(n+1) + ': ' + str(options[n]))
-print(str(len(options) + 1) + ': None of the above, exit')
+print('x' + ': None of the above, exit')
 
 n = int(input('>> ')) #Get user input to select serial port
 
@@ -158,8 +170,10 @@ while 1 :
         
         print('Write to file: (enter filename or \'n\' to skip)')
         filename = input()
+        writeFile = False
         if not (filename == 'n' or filename == 'no'):
             outfile = open(filename,'w',-1)
+            writeFile = True
 
 #Setup threads to listen on port and check user for input; 
 # if 'q' is pressed, stop listening. Threads are only necessary
@@ -172,7 +186,7 @@ while 1 :
         threads = []
 
         inputThread = threading.Thread(target=input_check)
-        listenThread = threading.Thread(target=listen)
+        listenThread = threading.Thread(target=listen,args = (writeFile,))
 
         threads.append(inputThread)
         threads.append(listenThread)
