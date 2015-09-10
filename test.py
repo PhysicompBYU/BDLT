@@ -41,9 +41,11 @@ def enum_serial_ports():
         return glob.glob('/dev/tty.usb*')
     else: #assume linux
         ports = serial.tools.list_ports.grep('/dev/ttyUSB*')
-        available_ports = [(item[0],item[0] + ' | ' + item[2][item[2].find('SNR=')+4:]) for item in ports]
+        available_ports = [(item[0],item[0]) if item[2].find('SNR=') == -1 \
+        else (item[0],item[0] + ' | ' + item[2][item[2].find('SNR=')+4:]) \
+        for item in ports]
         #return glob.glob('/dev/ttyUSB*')
-
+        return available_ports
 def read_serial(ser):
     out = ''
 #Read out a maximum of 100 bytes from device.  
@@ -85,7 +87,13 @@ def input_check(threadLock):
 
 #Listen on device serial port in a thread, stop when lock releases, 
 #indicating that 'q' was pressed
-def listen(writeFile,outFile,threadLock):
+def listen(filename,threadLock):
+    writeFile = False
+    if not (filename == 'n' or filename == 'no'):
+        filePath = path.relpath(filename)
+        outFile = open(filePath,'w',-1)
+        writeFile = True
+        
     print('Connecting...')
 #Save previous timeout and make sure it is 1/10 of a second
     save_timeout = ser.timeout
@@ -107,18 +115,14 @@ def listen(writeFile,outFile,threadLock):
         if(writeFile): #This checks if the program should write to file or not
             outFile.write(data.decode('ascii'))
     print('Stopping...')
-
+    if(writeFile):  #Close the file if we were writing to one
+        outFile.close()
     ser.timeout = save_timeout  #Restore saved timeout value
 
 
 def listener():
     print('Write to file: (enter filename or \'n\' to skip)')
     filename = input()
-    writeFile = False
-    if not (filename == 'n' or filename == 'no'):
-        filePath = path.relpath(filename)
-        outFile = open(filePath,'w',-1)
-        writeFile = True
 
 #Setup threads to listen on port and check user for input; 
 # if 'q' is pressed, stop listening. Threads are only necessary
@@ -131,7 +135,7 @@ def listener():
     threads = []
 
     inputThread = threading.Thread(target=input_check,args = (threadLock,))
-    listenThread = threading.Thread(target=listen,args = (writeFile,outFile,threadLock,))
+    listenThread = threading.Thread(target=listen,args = (filename,threadLock,))
 
     threads.append(inputThread)
     threads.append(listenThread)
@@ -141,10 +145,6 @@ def listener():
 
     for th in threads:
         th.join()
-
-    if(writeFile):  #Close the file if we were writing to one
-        outFile.close()
-
 
 # configure the serial connections, enumerating valid and available serial ports for
 #the current operating system
@@ -164,8 +164,6 @@ else:
     except:
         print('# That was not a valid selection #')
         exit()
-
-#TODO add input validation on serial port selection
 
 ser = serial.Serial(
     port=port,
