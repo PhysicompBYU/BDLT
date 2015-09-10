@@ -33,17 +33,22 @@ import os
 def enum_serial_ports():
     system_name = platform.system()
     if(system_name == "Windows"): #... Windows
-        ports = list(serial.tools.list_ports.comports())
-        available_ports = [(item[0],item[1]) for item in ports]
+        ports = serial.tools.list_ports.comports()
+        #newports = list(ports)
+        #print(newports)
+        available_ports = [(item[0],item[1]) if (item[2].find('BDL')) == -1 \
+            else (item[0],item[1] + ' | ' + item[2][item[2].find('BDL'):item[2].\
+            find('\\',item[2].find('BDL'))-1])\
+            for item in ports]
         #available_ports = list(map(lambda item: (item[0],item[1]),ports))
         return available_ports
     elif(system_name == "Darwin"):  #mac
         return glob.glob('/dev/tty.usb*')
     else: #assume linux
         ports = serial.tools.list_ports.grep('/dev/ttyUSB*')
-        available_ports = [(item[0],item[0]) if item[2].find('SNR=') == -1 \
-        else (item[0],item[0] + ' | ' + item[2][item[2].find('SNR=')+4:]) \
-        for item in ports]
+        available_ports = [(item[0],item[0]) if item[2].find('BDL') == -1 \
+            else (item[0],item[0] + ' | ' + item[2][item[2].find('BDL'):]) \
+            for item in ports]
         #return glob.glob('/dev/ttyUSB*')
         return available_ports
 def read_serial(ser):
