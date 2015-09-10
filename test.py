@@ -114,10 +114,12 @@ for n in range(len(options)):
     print(str(n+1) + ': ' + str(options[n]))
 print('x' + ': None of the above, exit')
 
-n = int(input('>> ')) #Get user input to select serial port
+n = input('>> ') #Get user input to select serial port
 
-if(n-1 == len(options)):
+if(n == 'x'):
     exit()  #If none option selected, exit
+
+n = int(n)
 
 #TODO add input validation on serial port selection
 
