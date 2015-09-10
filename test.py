@@ -34,20 +34,14 @@ def enum_serial_ports():
     system_name = platform.system()
     if(system_name == "Windows"): #... Windows
         ports = list(serial.tools.list_ports.comports())
-        available_ports = [item[1] for item in ports]
-#        for i in range(256):
-#            try:
-#                s = serial.Serial(i)
-#                available.append(i)
-#                s.close()
-#            except serial.SerialException:
-#                pass
+        available_ports = [(item[0],item[1]) for item in ports]
+        #available_ports = list(map(lambda item: (item[0],item[1]),ports))
         return available_ports
     elif(system_name == "Darwin"):  #mac
         return glob.glob('/dev/tty.usb*')
     else: #assume linux
         ports = serial.tools.list_ports.grep('/dev/ttyUSB*')
-        available_ports = [item[0] + ' | ' + item[2][item[2].find('SNR=')+4:]]
+        available_ports = [(item[0],item[0] + ' | ' + item[2][item[2].find('SNR=')+4:]) for item in ports]
         #return glob.glob('/dev/ttyUSB*')
 
 def read_serial(ser):
@@ -157,7 +151,7 @@ def listener():
 print('Select serial port:')
 options = enum_serial_ports()
 for n in range(len(options)):
-    print(str(n+1) + ': ' + str(options[n]))
+    print(str(n+1) + ': ' + str(options[n][1]))
 print('x' + ': None of the above, exit')
 
 n = input('>> ') #Get user input to select serial port
@@ -166,7 +160,7 @@ if(n == 'x'):
     exit()  #If none option selected, exit
 else:
     try:
-        port = options[int(n)-1]
+        port = options[int(n)-1][0]
     except:
         print('# That was not a valid selection #')
         exit()
