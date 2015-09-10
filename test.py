@@ -2,12 +2,15 @@
 
 import time
 import serial
+import serial.tools.list_ports
 import sys
 import platform
 import glob
 import select
 import threading
 import readchar
+from os import path
+import os
 #readchar should work on windows but doesnt. I hope you are using Unix. 
 #but it is not necessary to do the actual serial communication.
 
@@ -30,19 +33,22 @@ import readchar
 def enum_serial_ports():
     system_name = platform.system()
     if(system_name == "Windows"): #... Windows
-        available = []
-        for i in range(256):
-            try:
-                s = serial.Serial(i)
-                available.append(i)
-                s.close()
-            except serial.SerialException:
-                pass
-        return available
+        ports = list(serial.tools.list_ports.comports())
+        available_ports = [item[1] for item in ports]
+#        for i in range(256):
+#            try:
+#                s = serial.Serial(i)
+#                available.append(i)
+#                s.close()
+#            except serial.SerialException:
+#                pass
+        return available_ports
     elif(system_name == "Darwin"):  #mac
         return glob.glob('/dev/tty.usb*')
     else: #assume linux
-        return glob.glob('/dev/ttyUSB*')
+        ports = serial.tools.list_ports.grep('/dev/ttyUSB*')
+        available_ports = [item[0] + ' | ' + item[2][item[2].find('SNR=')+4:]]
+        #return glob.glob('/dev/ttyUSB*')
 
 def read_serial(ser):
     out = ''
@@ -71,7 +77,7 @@ def wait_serial(ser):
         time.sleep(.1)
 
 #Called in a thread to check for exit character while listening on serial port
-def input_check():
+def input_check(threadLock):
     threadLock.acquire()
     try:
         while True:
@@ -85,25 +91,65 @@ def input_check():
 
 #Listen on device serial port in a thread, stop when lock releases, 
 #indicating that 'q' was pressed
-def listen(writeFile):
+def listen(writeFile,outFile,threadLock):
     print('Connecting...')
+#Save previous timeout and make sure it is 1/10 of a second
     save_timeout = ser.timeout
     ser.timeout = .1
 
+#Flush all previously received data, this avoids garbled data 
+#       at the beginning
     ser.flushInput()
     time.sleep(.1)
     ser.flushInput()
 
     print('Listening: (\'q\' to quit)')
+
+#This thread cannot acquire the lock until the input thread
+#releases it.  Once that happens, exit thread, as we're done listening
     while not threadLock.acquire(blocking = False):
         data = ser.readline()
         print(data.decode('ascii'),end='')
-        if(writeFile): #This checks if 'outfile' is declared
-            outfile.write(data.decode('ascii'))
+        if(writeFile): #This checks if the program should write to file or not
+            outFile.write(data.decode('ascii'))
     print('Stopping...')
-    if(writeFile):
-        outfile.close()
-    ser.timeout = save_timeout
+
+    ser.timeout = save_timeout  #Restore saved timeout value
+
+
+def listener():
+    print('Write to file: (enter filename or \'n\' to skip)')
+    filename = input()
+    writeFile = False
+    if not (filename == 'n' or filename == 'no'):
+        filePath = path.relpath(filename)
+        outFile = open(filePath,'w',-1)
+        writeFile = True
+
+#Setup threads to listen on port and check user for input; 
+# if 'q' is pressed, stop listening. Threads are only necessary
+# to allow quitting during listen
+
+#The lock is acquired by input_check thread and released when 
+#'q' is detected.  The listen thread attempts to acquire the lock
+#to check if it should continue listening
+    threadLock = threading.Lock()
+    threads = []
+
+    inputThread = threading.Thread(target=input_check,args = (threadLock,))
+    listenThread = threading.Thread(target=listen,args = (writeFile,outFile,threadLock,))
+
+    threads.append(inputThread)
+    threads.append(listenThread)
+
+    inputThread.start()
+    listenThread.start()
+
+    for th in threads:
+        th.join()
+
+    if(writeFile):  #Close the file if we were writing to one
+        outFile.close()
 
 
 # configure the serial connections, enumerating valid and available serial ports for
@@ -118,13 +164,17 @@ n = input('>> ') #Get user input to select serial port
 
 if(n == 'x'):
     exit()  #If none option selected, exit
-
-n = int(n)
+else:
+    try:
+        port = options[int(n)-1]
+    except:
+        print('# That was not a valid selection #')
+        exit()
 
 #TODO add input validation on serial port selection
 
 ser = serial.Serial(
-    port=options[n-1],
+    port=port,
     baudrate=9600,
     parity=serial.PARITY_ODD,
     stopbits=serial.STOPBITS_TWO,
@@ -169,36 +219,7 @@ while 1 :
         wait_serial(ser)
 #This command simply outputs enything received over serial to the terminal
     elif 'listen' in inp or inp == 'ls':
-        
-        print('Write to file: (enter filename or \'n\' to skip)')
-        filename = input()
-        writeFile = False
-        if not (filename == 'n' or filename == 'no'):
-            outfile = open(filename,'w',-1)
-            writeFile = True
-
-#Setup threads to listen on port and check user for input; 
-# if 'q' is pressed, stop listening. Threads are only necessary
-# to allow quitting during listen
-
-#The lock is acquired by input_check thread and released when 
-#'q' is detected.  The listen thread attempts to acquire the lock
-#to check if it should continue listening
-        threadLock = threading.Lock()
-        threads = []
-
-        inputThread = threading.Thread(target=input_check)
-        listenThread = threading.Thread(target=listen,args = (writeFile,))
-
-        threads.append(inputThread)
-        threads.append(listenThread)
-
-        inputThread.start()
-        listenThread.start()
-
-        for th in threads:
-            th.join()
-
+        listener()
         continue # I dont know if I should have this; it just skips
                 # an additional read of the port
         
@@ -209,9 +230,9 @@ while 1 :
             while ser.inWaiting() > 0:
                 byt = ser.read(1) #read 1 byte
             time.sleep(.2)
+
 #Send command straight to device.  Will later be deprecated, 
 #as all will be handled by client
-
     else:
         inp += '\r'
         ser.write(inp.encode('ascii'))
