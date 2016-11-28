@@ -1,18 +1,13 @@
 import serial
+from serial.tools import list_ports, miniterm
+from codecs import IncrementalDecoder
 import platform
-import glob
-import sys
 import time
 
-__author__ = 'Kristian Sims, Broderick Gardner'
+__author__ = 'Kristian Sims'
 
 
 class BDLT:
-    """
-    This class aims to be an OO version of Broderick's simple python terminal.
-    I've removed the interactive part for now, but hopefully I can put it back
-    again in a way that allows it to be used by other scripts as well.
-    """
 
     def __init__(self, port=None, file=None):
         """
@@ -22,7 +17,8 @@ class BDLT:
         :param port: Optionally specify a port to connect to.
         :return: A BDLT object with a (hopefully) initialized port.
         """
-        self.file = file
+
+        # Open port
         if port is not None:
             self.port = serial.Serial(port=port)
         else:
@@ -44,30 +40,29 @@ class BDLT:
                       'again.', file=sys.stderr)
                 raise Exception('No ports found')
 
+        self.file = file
+        self.miniterm = miniterm.Miniterm(self.port,
+                                          filters=(miniterm.NoTerminal,))
+        self.miniterm.rx_decoder =
+
     @staticmethod
     def enum_serial_ports():
         """
-        Creates and returns a list of valid serial ports. For OS X (and in the
-        future for Linux and *maybe* Windows), it returns only ports with a
-        named BDL (like all of the BDL4's).
+        Creates and returns a list of valid serial ports.
 
         :return: A list of serial ports to connect to.
         """
-        system_name = platform.system()
-        if system_name == 'Windows':  # Windows
-            available = []
-            for i in range(256):
-                try:
-                    s = serial.Serial(i)
-                    available.append(i)
-                    s.close()
-                except serial.SerialException:
-                    pass
-            return available
-        elif system_name == 'Darwin':  # Mac
-            return glob.glob('/dev/tty.usbserial-BDL*')
-        else:  # Linux
-            return glob.glob('/dev/ttyUSB*')
+        ports = list(list_ports.grep("BDL*"))
+        if len(ports) > 0:
+            return ports
+        ports = list(list_ports.grep("BD*"))
+        if len(ports) > 0:
+            return ports
+        ports = list(list_ports.grep(""))
+        if len(ports) > 0:
+            return ports
+        else:
+            return None
 
     def read_serial(self):
         """
@@ -99,3 +94,10 @@ class BDLT:
     def listen(self):
         print('Connecting...',)
 
+
+class Decoder(IncrementalDecoder):
+
+    def __init__(self, errors='strict'):
+        IncrementalDecoder.__init__(self, errors)
+
+    def decode(self, input, final=False):
