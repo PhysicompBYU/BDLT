@@ -1,5 +1,5 @@
 from codecs import IncrementalDecoder
-
+from struct import unpack_from
 
 class BDLBin(IncrementalDecoder):
 
@@ -12,27 +12,28 @@ class BDLBin(IncrementalDecoder):
     STATE_LIGHT = 6
 
     TAGS = {
-        "A": 1,
-        "B": 1,
-        "G": 1,
-        "L": 1,
-        "T": 1,
-        "E": 1,
-        "S": 1,
-        "V": 1,
-        "a": 4,
-        "b": 5,
-        "l": 2,
-        "e": 3,
-        "i": 6,
+        b'A': STATE_ASCII,               # Accelerometer
+        b'B': STATE_ASCII,               # Barometer
+        b'G': STATE_ASCII,               # Gyroscope
+        b'L': STATE_ASCII,               # Log message
+        b'E': STATE_ASCII,               # Error message
+        b'T': STATE_ASCII,               # Temperature
+        b'V': STATE_ASCII,               # Voltage
+        b'a': STATE_ACCELEROMETER,       # Accelerometer
+        b'b': STATE_BAROMETER,           # Barometer
+        b'l': STATE_LOG,                 # Log message
+        b'e': STATE_ERR,                 # Error message
+        b'i': STATE_LIGHT,               # Light intensity
     }
+
+    BYTE_COUNT_ACCELEROMETER = 6
 
     def __init__(self, output='text', errors='strict'):
         super(BDLBin, self).__init__(errors)
         self.bytes = bytearray()
         self.state = 0
-        self.output = output
-        self.errors = errors
+        self.output_text = True if output == 'text' else False
+        self.errors = True if errors == 'strict' else False
 
     def decode(self, obj, final=False):
         self.bytes.append(obj)
@@ -43,23 +44,31 @@ class BDLBin(IncrementalDecoder):
                 if self.bytes[0] in self.TAGS:
                     self.state = self.TAGS[self.bytes[0]]
                 else:
-                    if self.errors == 'strict':  # TODO: is this how?
-                        raise DecodeException
+                    if self.errors == 'strict':
+                        raise DecodeException(
+                            'Bad tag found {}'.format(self.bytes[0]))
                     else:
                         del self.bytes[0]  # Skip to next
             elif self.state == self.STATE_ASCII:
                 dex = self.bytes.find(b'\n')
                 if dex >= 0:
                     self.state = 0
-                    line = str(self.bytes[:dex+1])
+                    line = str(self.bytes[:dex])
                     del self.bytes[:dex+1]
-                    return line
+                    lines.append(line)
                 else:
-                    chunk = str(self.bytes)
-                    self.bytes.clear()
-                    return chunk
+                    break
             elif self.state == self.STATE_ACCELEROMETER:
+                if len(self.bytes) >= self.BYTE_COUNT_ACCELEROMETER:
+                    nums = unpack_from('>hhh', self.bytes)
+                    if self.output_text:
+                        lines.append('{},{},{}'.format(*nums))
+                    else:
+                        lines.append(nums)
+                else:
+                    break
 
+        return '\n'.join(lines) if self.output_text else lines
 
     def reset(self):
         self.bytes = bytearray()
