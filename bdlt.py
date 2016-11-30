@@ -33,9 +33,9 @@ class BDLT:
                       'valid port.', file=stderr)
                 for n, port in enumerate(ports):
                     print(n, port.device, port.description)
-                n=-1
+                n = -1
                 while n not in range(len(ports)):
-                    n = int(input('1-{}'.format(len(ports))))
+                    n = int(input('0-{}: '.format(len(ports)-1)))
 
                 print('Using port:', ports[n].device)
 
@@ -60,7 +60,7 @@ class BDLT:
 
         :return: A list of serial ports to connect to.
         """
-        import pdb; pdb.set_trace()
+#        import pdb; pdb.set_trace()
         ports = list(list_ports.grep("BDL"))
         if len(ports) > 0:
             return ports
