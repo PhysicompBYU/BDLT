@@ -60,7 +60,6 @@ class BDLT:
 
         :return: A list of serial ports to connect to.
         """
-#        import pdb; pdb.set_trace()
         ports = list(list_ports.grep("BDL"))
         if len(ports) > 0:
             return ports

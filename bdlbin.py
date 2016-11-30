@@ -37,7 +37,7 @@ class BDLBin(IncrementalDecoder):
         self.errors = True if errors == 'strict' else False
 
     def decode(self, obj, final=False):
-        self.bytes.append(obj)
+        self.bytes.extend(bytearray(obj, 'UTF-8'))
         lines = []
 
         print(obj)
