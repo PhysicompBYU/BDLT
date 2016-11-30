@@ -1,7 +1,7 @@
 import serial
 from serial.tools import list_ports, miniterm
 from bdlbin import BDLBin
-from sys import stderr
+from sys import stderr, exit
 
 __author__ = 'Kristian Sims'
 
@@ -23,22 +23,28 @@ class BDLT:
         else:
             ports = self.enum_serial_ports()
 
-            if len(ports) == 1:
-                try:
-                    self.port = serial.Serial(port=ports[0].device)
-                except serial.SerialException as se:
-                    print('Error connecting to ', ports[0], file=stderr)
-                    raise se
-                finally:
-                    self.port.close()
-            elif len(ports) > 1:
-                print('Too many ports returned in search. Please specify a ' +
-                      'valid port.', file=stderr)
-                raise Exception('Could not find a single valid port')
-            else:
+            if len(ports) == 0:
                 print('No valid ports found. Please specify a port or try ' +
                       'again.', file=stderr)
                 raise Exception('No ports found')
+                sys.exit(1)
+            if len(ports) > 1:
+                print('Too many ports returned in search. Please specify a ' +
+                      'valid port.', file=stderr)
+                for n, port in enumerate(ports):
+                    print(n, port.device, port.description)
+                n=-1
+                while n not in range(len(ports)):
+                    n = int(input('1-{}'.format(len(ports))))
+
+                print('Using port:', ports[n].device)
+
+                try:
+                    self.port = serial.Serial(port=ports[n].device)
+                except serial.SerialException as se:
+                    print('Error connecting to ', ports[n].device, file=stderr)
+                    self.port.close()
+                    raise se
 
         self.file = file
         self.miniterm = miniterm.Miniterm(self.port, filters=[])
@@ -69,7 +75,6 @@ class BDLT:
 
     def run(self):
 
-        self.port.open()
         print('Start')
         self.miniterm.start()
         try:
