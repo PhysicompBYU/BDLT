@@ -1,5 +1,6 @@
-from codecs import IncrementalDecoder
+from codecs import IncrementalDecoder, CodecInfo, register as register_codec
 from struct import unpack_from
+
 
 class BDLBin(IncrementalDecoder):
 
@@ -39,6 +40,8 @@ class BDLBin(IncrementalDecoder):
         self.bytes.append(obj)
         lines = []
 
+        print(obj)
+
         while len(self.bytes) > 0:
             if self.state == self.STATE_RESET:
                 if self.bytes[0] in self.TAGS:
@@ -68,6 +71,9 @@ class BDLBin(IncrementalDecoder):
                 else:
                     break
 
+        if final and len(self.bytes > 0):
+            raise DecodeException('Bad final state')
+
         return '\n'.join(lines) if self.output_text else lines
 
     def reset(self):
@@ -82,6 +88,23 @@ class BDLBin(IncrementalDecoder):
         if state == 0:
             self.bytes = bytearray()
 
+    @staticmethod
+    def getregentry(name):
+        if name == 'bdl':
+            return CodecInfo(
+                encode=None,
+                decode=None,
+                incrementalencoder=None,
+                incrementaldecoder=BDLBin,
+                name='bdl',
+                _is_text_encoding=False
+            )
+        else:
+            return None
+
+    @staticmethod
+    def register():
+        register_codec(BDLBin.getregentry)
 
 class DecodeException(Exception):
     pass
