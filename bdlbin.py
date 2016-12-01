@@ -61,7 +61,7 @@ class BDLBin(IncrementalDecoder):
                     break
             elif self.state == self.STATE_ACCELEROMETER:
                 if len(self.bytes) >= self.BYTE_COUNT_ACCELEROMETER:
-                    nums = unpack_from('>hhhhhh', self.bytes)
+                    nums = unpack_from('<hhhhhh', self.bytes)
                     if self.output_text:
                         lines.append('A,{},{},{}\nG,{},{},{}'.format(*nums))
                     else:
