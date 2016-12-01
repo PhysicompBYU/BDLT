@@ -39,7 +39,7 @@ class BDLBin(IncrementalDecoder):
 
     def decode(self, obj, final=False):
         self.bytes.extend(obj)
-        lines = ['']
+        lines = []
 
         while len(self.bytes) > 0:
             if self.state == self.STATE_RESET:
@@ -49,8 +49,7 @@ class BDLBin(IncrementalDecoder):
                     if self.errors:
                         raise DecodeException(
                             'Bad tag found {}'.format(bytes([self.bytes[0]])))
-                    else:
-                        del self.bytes[0]  # Skip to next
+                del self.bytes[0]  # Skip to next
             elif self.state == self.STATE_ASCII:
                 dex = self.bytes.find(b'\n')
                 if dex >= 0:
@@ -75,7 +74,7 @@ class BDLBin(IncrementalDecoder):
         if final and len(self.bytes > 0):
             raise DecodeException('Bad final state')
 
-        return '\n'.join(lines) if self.output_text else lines
+        return '\n'.join(['']+lines) if self.output_text else lines
 
     def reset(self):
         self.bytes = bytearray()
