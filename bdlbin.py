@@ -68,6 +68,7 @@ class BDLBin(IncrementalDecoder):
                         lines.append('A,{},{},{}\nG,{},{},{}'.format(*nums))
                     else:
                         lines.append(nums)
+                    del self.bytes[:self.BYTE_COUNT_ACCELEROMETER]
                     self.state = 0
                 else:
                     break
