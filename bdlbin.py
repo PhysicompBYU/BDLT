@@ -33,11 +33,11 @@ class BDLBin(IncrementalDecoder):
         super(BDLBin, self).__init__(errors)
         self.bytes = bytearray()
         self.state = 0
-        self.output_text = True if output == 'text' else False
+        self.output_text = True #if output == 'text' else False
         self.errors = True if errors == 'strict' else False
 
     def decode(self, obj, final=False):
-        self.bytes.extend(bytearray(obj, 'UTF-8'))
+        self.bytes.extend(obj)
         lines = []
 
         print(obj)
