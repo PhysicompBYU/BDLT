@@ -27,7 +27,7 @@ class BDLBin(IncrementalDecoder):
         b'i': STATE_LIGHT,               # Light intensity
     }
 
-    BYTE_COUNT_ACCELEROMETER = 6
+    BYTE_COUNT_ACCELEROMETER = 12
 
     def __init__(self, output='text', errors='strict'):
         super(BDLBin, self).__init__(errors)
@@ -63,9 +63,9 @@ class BDLBin(IncrementalDecoder):
                     break
             elif self.state == self.STATE_ACCELEROMETER:
                 if len(self.bytes) >= self.BYTE_COUNT_ACCELEROMETER:
-                    nums = unpack_from('<hhh', self.bytes)
+                    nums = unpack_from('<hhhhhh', self.bytes)
                     if self.output_text:
-                        lines.append('{},{},{}'.format(*nums))
+                        lines.append('A,{},{},{}\nG,{},{},{}'.format(*nums))
                     else:
                         lines.append(nums)
                     self.state = 0
