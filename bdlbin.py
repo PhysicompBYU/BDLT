@@ -33,7 +33,7 @@ class BDLBin(IncrementalDecoder):
         super(BDLBin, self).__init__(errors)
         self.bytes = bytearray()
         self.state = 0
-        self.output_text = True #if output == 'text' else False
+        self.output_text = True  # if output == 'text' else False
         self.errors = True if errors == 'strict' else False
 
     def decode(self, obj, final=False):
@@ -55,19 +55,20 @@ class BDLBin(IncrementalDecoder):
             elif self.state == self.STATE_ASCII:
                 dex = self.bytes.find(b'\n')
                 if dex >= 0:
-                    self.state = 0
                     line = str(self.bytes[:dex])
                     del self.bytes[:dex+1]
                     lines.append(line)
+                    self.state = 0
                 else:
                     break
             elif self.state == self.STATE_ACCELEROMETER:
                 if len(self.bytes) >= self.BYTE_COUNT_ACCELEROMETER:
-                    nums = unpack_from('>hhh', self.bytes)
+                    nums = unpack_from('<hhh', self.bytes)
                     if self.output_text:
                         lines.append('{},{},{}'.format(*nums))
                     else:
                         lines.append(nums)
+                    self.state = 0
                 else:
                     break
 
