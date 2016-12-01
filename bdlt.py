@@ -49,9 +49,10 @@ class BDLT:
         self.file = file
         self.miniterm = miniterm.Miniterm(self.port, filters=[])
         BDLBin.register()
-        self.miniterm.set_rx_encoding('bdl')
+        self.miniterm.set_rx_encoding('bdl', errors='strict')
         self.miniterm.set_tx_encoding('UTF-8')
         self.miniterm.exit_character = 'q'
+        self.miniterm.echo = False
 
     @staticmethod
     def enum_serial_ports():
