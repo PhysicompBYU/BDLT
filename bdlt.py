@@ -2,6 +2,8 @@ import serial
 from serial.tools import list_ports, miniterm
 from bdlbin import BDLBin
 from sys import stderr, exit
+from argparse import ArgumentParser
+
 
 __author__ = 'Kristian Sims'
 
@@ -87,4 +89,10 @@ class BDLT:
 
 
 if __name__ == '__main__':
-    BDLT().run()
+    parser = argparse.ArgumentParser(description='Interact with a Berry Data Logger')
+    parser.add_argument('-P', '--port', dest='port', action='store',
+                        help='COM port( or /dev/tty* port) to BDL.')
+
+    args = parser.parse_args()
+    
+    BDLT(args.port).run()
