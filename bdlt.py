@@ -89,7 +89,7 @@ class BDLT:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Interact with a Berry Data Logger')
+    parser = ArgumentParser(description='Interact with a Berry Data Logger')
     parser.add_argument('-P', '--port', dest='port', action='store',
                         help='COM port( or /dev/tty* port) to BDL.')
 
