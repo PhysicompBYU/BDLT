@@ -1,6 +1,6 @@
 import serial
 from serial.tools import list_ports, miniterm
-from bdlbin import BDLBin
+import bdlbin
 from sys import stderr, exit
 from argparse import ArgumentParser
 
@@ -25,12 +25,11 @@ class BDLT:
         else:
             ports = self.enum_serial_ports()
 
+            # No ports
             if len(ports) == 0:
-                print('No valid ports found. Please specify a port or try ' +
-                      'again.', file=stderr)
+                print('No valid ports found', file=stderr)
                 raise Exception('No ports found')
-                sys.exit(1)
-            if len(ports) > 1:
+            elif len(ports) > 1:
                 print('Too many ports returned in search. Please specify a ' +
                       'valid port.', file=stderr)
                 for n, port in enumerate(ports):
@@ -47,10 +46,12 @@ class BDLT:
                     print('Error connecting to ', ports[n].device, file=stderr)
                     self.port.close()
                     raise se
+            else:
+                self.port = serial.Serial(port=ports[0].device)
 
         self.file = file
         self.miniterm = miniterm.Miniterm(self.port, filters=[])
-        BDLBin.register()
+        bdlbin.register()
         self.miniterm.set_rx_encoding('bdl', errors='strict')
         self.miniterm.set_tx_encoding('UTF-8')
         self.miniterm.exit_character = 'q'
@@ -88,7 +89,7 @@ class BDLT:
         self.miniterm.close()
 
 
-if __name__ == '__main__':
+def main():
     parser = ArgumentParser(description='Interact with a Berry Data Logger')
     parser.add_argument('-P', '--port', dest='port', action='store',
                         help='COM port( or /dev/tty* port) to BDL.')
@@ -96,3 +97,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     BDLT(args.port).run()
+
+
+if __name__ == '__main__':
+    main()
