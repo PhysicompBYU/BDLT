@@ -45,7 +45,6 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
         self.time = 0  # TODO: Kosher??
         self.output_text = True  # if output == 'text' else False
         self.errors = True if errors == 'strict' else False
-        print(self.errors)
 
     def decode(self, obj, final=False):
         self.bytes.extend(obj)
@@ -201,6 +200,8 @@ def main(infile, outfile):
     decoder = IncrementalDecoder(output='text')
     try:
         for chunks in read16(infile):
+            if chunks == bytearray(16):
+                break
             outfile.write(decoder.decode(chunks))
         decoder.decode(bytes(), final=True)
     finally:
