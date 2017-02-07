@@ -65,6 +65,10 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
                     line = 'S,' + str(self.bytes[:dex])
                     del self.bytes[:dex + 1 + 1]  # TODO: CRC??
                     # lines.append(line)
+
+                    if 'RED' in line:
+                        lines.append('S,' + str(self.time) + ',LED Sync')
+
                     self.state = 0
                 else:
                     break
