@@ -2,7 +2,7 @@
 
 import serial
 from serial.tools import list_ports, miniterm
-import bdlbin
+import bdlcodec
 from sys import stderr
 from argparse import ArgumentParser
 
@@ -53,7 +53,7 @@ class BDLT:
 
         self.file = file
         self.miniterm = miniterm.Miniterm(self.port, filters=[])
-        bdlbin.register()
+        bdlcodec.register()
         self.miniterm.set_rx_encoding('bdl', errors='replace')
         self.miniterm.set_tx_encoding('UTF-8')
         self.miniterm.exit_character = 'q'
