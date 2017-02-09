@@ -26,11 +26,11 @@ class DataRecord:
 
     @staticmethod
     def verify_crc(record):
-        crc = 0
+        crc = 0xff
         for byte in record:
-            crc = DataRecord.CRC_TABLE[(crc ^ 0xff ^ byte)] ^ 0xff
+            crc = DataRecord.CRC_TABLE[crc ^ byte]
 
-        return record == 0xea
+        return crc == DataRecord.CRC_TABLE[-1]
 
     CRC_TABLE = (
         0x00, 0x3e, 0x7c, 0x42, 0xf8, 0xc6, 0x84, 0xba, 0x95, 0xab, 0xe9, 0xd7,
