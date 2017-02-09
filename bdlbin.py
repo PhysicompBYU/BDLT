@@ -4,33 +4,39 @@ from struct import unpack_from
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
-    # TODO: This should actually be a BufferedIncrementalEncoder
-    STATE_RESET = 0
-    STATE_ASCII = 1
-    STATE_LOG = 2
-    STATE_ERR = 3
-    STATE_ACCELEROMETER = 4
-    STATE_BAROMETER = 5
-    STATE_LIGHT = 6
-    STATE_TIME = 7
-    STATE_END = 8
-    STATE_OVER = 9
+
+    # States/datatypes
+    RESET = 0
+    ASCII = b'Z'
+    LOG = b'L'
+    ERR = b'E'
+    MPU = b'M'
+    ACCELEROMETER =
+    BAROMETER = 5
+    LIGHT = 6
+    TIME = 7
+    END = 8
+    OVER = 9
 
     TAGS = {
-        b'A': STATE_ASCII,  # Accelerometer
-        b'B': STATE_ASCII,  # Barometer
-        b'G': STATE_ASCII,  # Gyroscope
-        b'L': STATE_ASCII,  # Log message
-        b'E': STATE_ASCII,  # Error message
-        b'T': STATE_ASCII,  # Temperature
-        b'V': STATE_ASCII,  # Voltage
-        b'a': STATE_ACCELEROMETER,  # Accelerometer
-        b'b': STATE_BAROMETER,  # Barometer
-        b'l': STATE_LOG,  # Log message
-        b'e': STATE_ERR,  # Error message
-        b'i': STATE_LIGHT,  # Light intensity
-        b'u': STATE_TIME,  # Time stamp
-        b'X': STATE_END  # End of file
+        b'A': ASCII,  # Accelerometer
+        b'B': ASCII,  # Barometer
+        b'G': ASCII,  # Gyroscope
+        b'L': ASCII,  # Log message
+        b'E': ASCII,  # Error message
+        b'T': ASCII,  # Temperature
+        b'V': ASCII,  # Voltage
+        b'a': ACCELEROMETER,  # Accelerometer
+        b'b': BAROMETER,  # Barometer
+        b'l': LOG,  # Log message
+        b'e': ERR,  # Error message
+        b'i': LIGHT,  # Light intensity
+        b'u': TIME,  # Time stamp
+        b'X': END  # End of file
+    }
+
+    FORMATS = {
+
     }
 
     BYTE_COUNT_ACCELEROMETER = 12
