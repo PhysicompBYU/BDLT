@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+
 import serial
 from serial.tools import list_ports, miniterm
 import bdlbin
-from sys import stderr, exit
+from sys import stderr
 from argparse import ArgumentParser
 
 
@@ -52,7 +54,7 @@ class BDLT:
         self.file = file
         self.miniterm = miniterm.Miniterm(self.port, filters=[])
         bdlbin.register()
-        self.miniterm.set_rx_encoding('bdl', errors='strict')
+        self.miniterm.set_rx_encoding('bdl', errors='replace')
         self.miniterm.set_tx_encoding('UTF-8')
         self.miniterm.exit_character = 'q'
         self.miniterm.echo = False

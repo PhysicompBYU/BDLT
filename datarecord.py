@@ -5,24 +5,29 @@ class DataRecord:
 
     # Needs to be overridden in subclass!
     pattern = ''
+    length = 0
+    tag = '?'
 
     def __init__(self):
         self.data = []
         self.times = {}
 
     def append(self, record):
-        self.data.append(self.decode(record))
+        self.data.append(self.read(record))
 
     def time_sync(self, time):
         self.times[len(self.data)] = time
 
     @classmethod
     def decode(cls, record):
+        return ','.join(map(str, (cls.tag,) + cls.read(record))) + '\n'
+
+    @classmethod
+    def read(cls, record):
         if DataRecord.verify_crc(record):
-            del record[-1]
+            return struct.unpack(cls.pattern, record[:-1])
         else:
             raise CRCException
-        return struct.unpack(cls.pattern, record)
 
     @staticmethod
     def verify_crc(record):
