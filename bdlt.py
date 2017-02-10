@@ -51,7 +51,7 @@ class BDLT:
             else:
                 self.port = serial.Serial(port=ports[0].device)
 
-        self.file = file
+        self.file = file  # TODO: This isn't enabled
         self.miniterm = miniterm.Miniterm(self.port, filters=[])
         bdlcodec.register()
         self.miniterm.set_rx_encoding('bdl', errors='replace')

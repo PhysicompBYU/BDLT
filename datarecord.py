@@ -12,20 +12,20 @@ class DataRecord:
         self.data = []
         self.times = {}
 
-    def append(self, record):
-        self.data.append(self.read(record))
+    def append(self, record, offset=0):
+        self.data.append(self.read(record, offset))
 
     def time_sync(self, time):
         self.times[len(self.data)] = time
 
     @classmethod
-    def decode(cls, record):
-        return ','.join(map(str, (cls.tag,) + cls.read(record))) + '\n'
+    def decode(cls, record, offset=0):
+        return ','.join(map(str, (cls.tag,) + cls.read(record, offset))) + '\n'
 
     @classmethod
-    def read(cls, record):
+    def read(cls, record, offset=0):
         if DataRecord.verify_crc(record):
-            return struct.unpack(cls.pattern, record[:-1])
+            return struct.unpack_from(cls.pattern, record, offset)
         else:
             raise CRCException
 
