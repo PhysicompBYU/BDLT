@@ -15,7 +15,7 @@ def main():
                         const=True, help='Use decimal time stamps')
     parser.add_argument('--spec', default='D,Time:0ms',
                         help='Spec to indicate version (or "none")')
-    parser.add_argument('--conversion', default=1000/512,
+    parser.add_argument('--conversion', default=1000/512, type=float,
                         help='Multiply timestamps by this rate')
     
     args = parser.parse_args()
