@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import codecs
 import argparse
 from struct import unpack_from
@@ -202,6 +204,7 @@ def read16(file):
 
 def main(infile, outfile):
     decoder = IncrementalDecoder(output='text')
+    print('D,Time:0ms', file=outfile)  # Bodge bodge bodge
     try:
         for chunks in read16(infile):
             if chunks == bytearray(16):

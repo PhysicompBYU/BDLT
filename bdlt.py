@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import serial
 from serial.tools import list_ports, miniterm
 import bdlbin
