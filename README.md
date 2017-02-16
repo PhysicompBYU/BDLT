@@ -6,7 +6,8 @@ Interfacing with Berry Data Loggers.
 Run bdlt.py in the command line
 
 ##### File decode
-Run python3 bdlbin.py infile outfile in the command line
+Run 'python3 bdlbin.py <infile> <outfile>' in the command line
+'infile' should be a BDL binary file written to the SD card or collected on a computer.  
 
 ##### Notes If the BDL does not appear as a COM port on Windows, you
 need to make sure that the FTDI drivers are installed and that under
