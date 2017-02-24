@@ -29,7 +29,7 @@ class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
 
         dex = 0
         result = ''
-        while dex < len(data) - 4:
+        while dex < len(data) - (0 if final else 4):
 
             if data[dex] in IncrementalDecoder.TAGS:
                 tag = data[dex]
