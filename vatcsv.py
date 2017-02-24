@@ -3,10 +3,7 @@
 
 import argparse
 from sys import stderr
-from motion import Motion
-from pressure import Pressure
-from light import Light
-from time import Time
+from data import *
 
 
 def read_chunks(file, size=16):

@@ -1,4 +1,4 @@
-from datarecord import DataRecord
+from .datarecord import DataRecord
 
 
 class Light(DataRecord):

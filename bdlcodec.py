@@ -1,7 +1,5 @@
 import codecs
-import motion
-import pressure
-import light
+from data import *
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
@@ -13,11 +11,11 @@ class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
         0x45: None,  # E - Error message
         0x54: None,  # T - Temperature
         0x56: None,  # V - Voltage
-        0x61: motion.Motion,  # a - Accelerometer
-        0x62: pressure.Pressure,  # b - Barometer
+        0x61: Motion,  # a - Accelerometer
+        0x62: Pressure,  # b - Barometer
         # 0x6C: LOG,  # l - Log message
         # 0x65: ERR,  # e - Error message
-        0x6c: light.Light,  # l - Light intensity
+        0x6c: Light,  # l - Light intensity
         0x75: None,  # u - Time stamp
         0x58: None  # X - End of file
     }

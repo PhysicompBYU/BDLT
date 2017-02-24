@@ -1,4 +1,6 @@
-from datarecord import DataRecord
+__all__ = ['Motion', 'Accelerometer', 'Gyroscope', 'Compass']
+
+from data.datarecord import DataRecord
 
 
 class Motion(DataRecord):
@@ -7,8 +9,8 @@ class Motion(DataRecord):
     tag = '-'
 
     @classmethod
-    def decode(cls, record):
-        nums = Motion.read(record)
+    def decode(cls, record, offset=0):
+        nums = Motion.read(record, offset)
         return 'A,' + ','.join(map(str, nums[:3])) + '\n' + \
                'G,' + ','.join(map(str, nums[3:])) + '\n'
 
