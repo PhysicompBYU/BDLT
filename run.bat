@@ -1,0 +1,1 @@
+start /d gui.dist gui.exe

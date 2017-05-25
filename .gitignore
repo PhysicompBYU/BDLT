@@ -7,3 +7,5 @@ __pycache__/
 gui.build/
 gui.dist/
 output
+test/
+test.*
