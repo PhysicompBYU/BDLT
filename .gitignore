@@ -4,3 +4,6 @@
 .#*
 .idea/
 __pycache__/
+gui.build/
+gui.dist/
+output

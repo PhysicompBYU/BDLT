@@ -12,11 +12,13 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
     STATE_LOG = 2
     STATE_ERR = 3
     STATE_ACCELEROMETER = 4
-    STATE_BAROMETER = 5
-    STATE_LIGHT = 6
-    STATE_TIME = 7
-    STATE_END = 8
-    STATE_OVER = 9
+    STATE_GYROSCOPE = 5
+    STATE_COMPASS = 6
+    STATE_BAROMETER = 7
+    STATE_LIGHT = 8
+    STATE_TIME = 9
+    STATE_END = 10
+    STATE_OVER = 11
 
     TAGS = {
         b'A': STATE_ASCII,  # Accelerometer
@@ -27,6 +29,8 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
         b'T': STATE_ASCII,  # Temperature
         b'V': STATE_ASCII,  # Voltage
         b'a': STATE_ACCELEROMETER,  # Accelerometer
+        b'g': STATE_GYROSCOPE,  # Accelerometer
+        b'c': STATE_COMPASS,
         b'b': STATE_BAROMETER,  # Barometer
         b'l': STATE_LOG,  # Log message
         b'e': STATE_ERR,  # Error message
@@ -35,8 +39,10 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
         b'X': STATE_END  # End of file
     }
 
-    BYTE_COUNT_ACCELEROMETER = 12
-    BYTE_COUNT_BAROMETER = 6
+    BYTE_COUNT_ACCELEROMETER = 6
+    BYTE_COUNT_GYROSCOPE = 6
+    BYTE_COUNT_COMPASS = 6
+    BYTE_COUNT_BAROMETER = 5
     BYTE_COUNT_LIGHT = 4
     BYTE_COUNT_TIME_STAMP = 4
 
@@ -76,29 +82,55 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
                     break
             elif self.state == self.STATE_ACCELEROMETER:
                 if len(self.bytes) > self.BYTE_COUNT_ACCELEROMETER:
-                    nums = unpack_from('<hhhhhhx', self.bytes)
+                    nums = unpack_from('>hhhx', self.bytes)
                     # TODO: Check CRC
                     if self.output_text:
-                        lines.append('A,{},{},{},{}\nG,{},{},{},{}'.format(
-                            self.time, *nums[:3], self.time, *nums[3:]))
+                        lines.append('A,{},{},{},{}'.format(
+                            self.time, *nums[:3]))
                     else:
                         lines.append(nums)
                     del self.bytes[:(self.BYTE_COUNT_ACCELEROMETER + 1)]
                     self.state = 0
+                else:
+                    break
+            elif self.state == self.STATE_GYROSCOPE:
+                if len(self.bytes) > self.BYTE_COUNT_GYROSCOPE:
+                    nums = unpack_from('>hhhx', self.bytes)
+                    # TODO: Check CRC
+                    if self.output_text:
+                        lines.append('G,{},{},{},{}'.format(
+                            self.time, *nums[:3]))
+                    else:
+                        lines.append(nums)
+                    del self.bytes[:(self.BYTE_COUNT_GYROSCOPE + 1)]
+                    self.state = 0
                     self.time += 10
+                else:
+                    break
+            elif self.state == self.STATE_COMPASS:
+                if len(self.bytes) > self.BYTE_COUNT_COMPASS:
+                    nums = unpack_from('<hhhx', self.bytes)
+                    # TODO: Check CRC
+                    if self.output_text:
+                        lines.append('C,{},{},{},{}'.format(
+                            self.time, *nums[:3]))
+                    else:
+                        lines.append(nums)
+                    del self.bytes[:(self.BYTE_COUNT_COMPASS + 1)]
+                    self.state = 0  
                 else:
                     break
             elif self.state == self.STATE_BAROMETER:
                 if len(self.bytes) > self.BYTE_COUNT_BAROMETER:
-                    nums = unpack_from('>xhBbBx', self.bytes)
+                    nums = unpack_from('>hBbBx', self.bytes)
                     # TODO: change to pressure; calculate altitude
                     altitude = nums[0] + nums[1] / 256  # 4 bits, but upper
                     temperature = nums[2] + nums[3] / 256  # 4 bits, but upper
-                    # if self.output_text:
-                    #     lines.append('B,{},{},{}'.format(self.time, altitude,
-                    #                                      temperature))
-                    # else:
-                    #     lines.append((altitude, temperature))
+                    if self.output_text:
+                        lines.append('B,{},{},{}'.format(self.time, altitude,
+                                                         temperature))
+                    else:
+                        lines.append((altitude, temperature))
                     del self.bytes[:(self.BYTE_COUNT_BAROMETER + 1)]
                     self.state = 0
                 else:
@@ -224,3 +256,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.file, args.output)
+

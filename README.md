@@ -3,7 +3,7 @@
 Interfacing with Berry Data Loggers.  
 
 ##### Terminal 
-Run bdlt.py in the command line
+Run bdlt.py in the command line using Python 3
 
 ##### File decode
 Run 'python3 bdlbin.py <infile> <outfile>' in the command line
